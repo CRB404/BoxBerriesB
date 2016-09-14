@@ -7,8 +7,8 @@
   var currentIdx = null
   var loc = 'A'
 
-  var emailCapture = firebase.database().ref('emails/strawberriesOne');
-  var locationRecord = firebase.database().ref('location/strawberriesOne');
+  var emailCapture = firebase.database().ref('emails/strawberriesTwo');
+  var locationRecord = firebase.database().ref('location/strawberriesTwo');
 
 
 
@@ -78,14 +78,14 @@
             $('#Alert2').modal('hide');
 
           }, 5000)
-        }, 5000)
+        }, 3000)
       }, 5000)
-    }, 7000)
+    }, 5000)
   }
 
   // APIs
   window.onload = function() {
-    firebase.database().ref('location/strawberriesOne/val').once('value').then(function(snapshot) {
+    firebase.database().ref('location/strawberriesTwo/val').once('value').then(function(snapshot) {
       var Value = snapshot.val();
       loc = Value;
       document.getElementById("destination").innerHTML=loc;
