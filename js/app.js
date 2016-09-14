@@ -1,124 +1,147 @@
-var variable = firebase.database().ref('inputs');
-var lossVal = firebase.database().ref();
+(function($) {
 
-// Graph Array
+  var APP_STATES = ['sHook','sContext','sAccept','sMap','sArrive','sSoWhat','sEmail'];
+  var INITIAL_STATE_IDX = 0
 
-var graphs = [
-  'Y','X','W','V','U','T','S','R','Q','P','O','N','M','L','K','J',
-  'I','H','G','F','E','D','C','B','A',
+  var currentState = null
+  var currentIdx = null
+  var loc = 'A'
 
-  'z','y','x','w','v','u','t','s','r','q','p','o','n','m','l','k',
-  'j','i','h','g','f','e','d','c','b','a',' '
-]
+  var emailCapture = firebase.database().ref('emails/strawberriesOne');
+  var locationRecord = firebase.database().ref('location/strawberriesOne');
 
-// Bounty and Graph Function
+
+
+// Div Id Renderer | "Page Routing"
 // _____________________________________________________________________________
 
-// OnLoad Update Bounty and Graph
+  // App helpers and initializers
+  function hideAllStates() {
+    $("[id^=s]").css({ "display": "none" })
+  }
 
-// lossVal.once("value")
-//   .then(function(snapshot) {
-//     var name = snapshot.child('penalty').val(); // {loss value}
-//
-//     var graphsDisplay = name - 1;
-//
-//     var circles = graphs[graphsDisplay]
-//
-//     document.getElementById("lossValue").innerHTML=circles;
-//   });
+  function showState(state) {
+    $("#" + state).css({ "display": "block" })
+  }
 
-// Auto-Update Bounty and Graph  *double commented*
+  function hideState(state) {
+    $("#" + state).css({ "display": "none" })
+  }
 
-// lossVal.on('child_changed', function(data) {
-//   // var lossName = data.child("/val").val();
-//   console.log("New Value " + data.val());
-//
-//   // working with zero index so subtract one
-//   var graphsDisplay = data.val() - 1;
-//
-//   var circles = graphs[graphsDisplay]
-//
-//   document.getElementById("lossValue").innerHTML=circles;
-//
-//   // lossName.onChange = function() {
-//   //   document.getElementById("lossValue").innerHTML=lossName;
-//   //   console.log(lossName);
-//   // }
-// });
+  function setState(state) {
+    hideAllStates()
+    showState(state)
+  }
 
+  function resetState() {
+    currentIdx = INITIAL_STATE_IDX
+    currentState = APP_STATES[INITIAL_STATE_IDX];
+  }
 
-// function writeUp() {
-//   lossVal.set( + 1)
-//     .then(function() {
-//       console.log('Synchronization succeeded');
-//     })
-//     .catch(function(error) {
-//       console.log('Synchronization failed');
-//     });
-// }
-//
+  function initializeApp() {
+    resetState()
+    setState(currentState)
+  }
 
+  function locationSet() {
+    // locationRecord.on('value', function(snapshot) {
+    //   loc = snapshot.val();
+    // });
+    // console.log('reference successful');
+    if (loc == 'A'){
+      loc = 'B';
+      locationRecord.set({ val: 'B' })
+      console.log('New location is ' + loc);
+    }
+    else if (loc == 'B') {
+      loc = 'A';
+      locationRecord.set({ val: 'A' })
+      console.log('New location is ' + loc);
+    }
+  }
 
-// Search Function
-// _____________________________________________________________________________
+  function runTimedModals() {
+    setTimeout(function() {
+      console.log('Modal 1 is running')
+      $('#Alert1').modal('show');
 
-function writeUserData() {
-  variable.push({ val:document.getElementById("search").value })
-    .then(function() {
-      console.log('Synchronization succeeded');
-    })
-    .catch(function(error) {
-      console.log('Synchronization failed');
+      setTimeout(function() {
+        console.log('Modal 1 closes')
+        $('#Alert1').modal('hide');
+
+        setTimeout(function() {
+          console.log('Modal 2 is running')
+          $('#Alert2').modal('show');
+
+          setTimeout(function() {
+            console.log('Modal 2 closes')
+            $('#Alert2').modal('hide');
+
+          }, 5000)
+        }, 5000)
+      }, 5000)
+    }, 7000)
+  }
+
+  // APIs
+  window.onload = function() {
+    firebase.database().ref('location/strawberriesOne/val').once('value').then(function(snapshot) {
+      var Value = snapshot.val();
+      loc = Value;
+      document.getElementById("destination").innerHTML=loc;
+      document.getElementById("destinationMap").innerHTML=loc;
+      console.log('Start location is ' + loc);
     });
-}
+  }
 
-// Call search results and display
+  function advanceState() {
+    hideState(currentState)
+    currentIdx++;
+    currentState = APP_STATES[currentIdx];
+    showState(currentState);
+  }
 
-// window.onload = function() {
-//   firebase.database().ref('query/val').once('value').then(function(snapshot) {
-//     var Value = snapshot.val();
-//     document.getElementById("qry").innerHTML=Value;
-//     // ...
-//   });
-//        //when the document is finished loading, replace everything
-//        //between the <a ...> </a> tags with the value of splitText
-//
-// }
+  function advanceToTransitState() {
+    hideState(currentState)
+    currentIdx++;
+    currentState = APP_STATES[currentIdx];
+    showState(currentState);
+    runTimedModals();
+  }
 
+  function emergencyExit() {
+    location.reload();
+  }
 
-// Buttons On Storefront
-// _____________________________________________________________________________
-function write1() {
-  firebase.database().ref('Demand/Item 1').transaction(function(value) {
-    console.log('value', value);
-    return value + 1;
-  });
-}
+  function complete() {
+    // Capture email
+    emailCapture.push({ val: document.getElementById("emailInput").value })
+      .then(function() {
+        console.log('Email Captured');
+      })
+      .catch(function(error) {
+        console.log('Email Capture Failed');
+      });
 
-function write2() {
-  firebase.database().ref('Demand/Item 2').transaction(function(value) {
-    console.log('value', value);
-    return value + 1;
-  });
-}
+    // Increment to track position
+    locationSet()
 
-function write3() {
-  firebase.database().ref('Demand/Item 3').transaction(function(value) {
-    console.log('value', value);
-    return value + 1;
-  });
-}
+    // Re-initialize app
+    setTimeout(function() {
+      console.log('I am done!')
+      initializeApp()
+    }, 2000)
+  }
 
-function write4() {
-  firebase.database().ref('Demand/Item 4').transaction(function(value) {
-    console.log('value', value);
-    return value + 1;
-  });
-}
+  // Expose the APIs
+  window.App = {
+    advance: advanceState,
+    advanceToTrasit: advanceToTransitState,
+    quit:emergencyExit,
+    complete: complete
+  }
 
-function write5() {
-  firebase.database().ref('Demand/Other').transaction(function(value) {
-    console.log('value', value);
-    return value + 1;
-  });
-}
+  // Init the app
+  initializeApp()
+
+})(jQuery)
